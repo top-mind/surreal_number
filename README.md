@@ -7,13 +7,13 @@ A formalization of John H. Conway's surreal numbers in Rocq (formerly Coq), base
 Surreal numbers are a class of numbers that includes all real numbers as well as infinite and infinitesimal numbers. They are constructed recursively:
 - A surreal number $x = \{L \mid R\}$ consists of a left set $L$ and right set $R$ of previously created surreal numbers
 - Every element of $L$ is less than every element of $R$
-- The ordering $x \leq y$ holds when no element of $x$'s right set is $\leq y$ and no element of $y$'s left set is $\geq x$
+- The ordering $x \leq y$ holds when no element of $x$'s left set is $\leq y$ and no element of $y$'s right set is $\geq x$
 
 ## Project Structure
 
 | File | Description |
 |------|-------------|
-| `base.v` | Core definitions: surreal numbers, ordering relations ($\leq$, $\not\geq$), basic lemmas |
+| `base.v` | Core definitions: surreal numbers, ordering relations ($\leq$, $\ngeq$), basic lemmas |
 | `equiv.v` | Equivalence relations and set-level equality between surreal numbers |
 | `add.v` | Addition, negation, subtraction, and their algebraic properties |
 | `add_facts.v` | Additional algebraic facts and theorems about operations |
@@ -25,6 +25,9 @@ Surreal numbers are a class of numbers that includes all real numbers as well as
 Requires Rocq (Coq) 9.1 or later.
 
 ```bash
+# Generate Makefile
+rocq makefile -f _RocqProject -o Makefile
+
 # Build all modules
 make
 
@@ -58,7 +61,7 @@ Check sle_refl.
 ## Key Definitions
 
 - **Surreal numbers**: Inductive type `surreal` with constructor `snlr` for left/right sets
-- **Ordering**: Mutual inductive definitions `sle` ($\leq$) and `snge` ($\not\geq$)
+- **Ordering**: Mutual inductive definitions `sle` ($\leq$) and `snge` ($\ngeq$)
 - **Notation**: `[l, r]` constructs a surreal number from left map `l` and right map `r`
 
 ## References
