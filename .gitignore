@@ -1,0 +1,16 @@
+# Rocq/Coq build artifacts
+*.vo
+*.glob
+*.vok
+*.vos
+*.aux
+
+# Generated Makefile configuration
+Makefile.conf
+
+# Generated documentation
+html/
+
+# Editor files
+.vscode/
+*~

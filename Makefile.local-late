@@ -1,0 +1,6 @@
+assumptions: real-all
+	python3 scripts/print_assumptions_from_glob.py --coqtop 'rocq repl -Q . SN'
+.PHONY: assumptions
+
+clean::
+	rm -rf assumptions
