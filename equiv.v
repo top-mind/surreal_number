@@ -1,8 +1,7 @@
-From Stdlib Require Import Utf8_core.
 From Stdlib Require Import Setoid.
 From SN Require Import base.
 
-Definition seq x y := (x ≤ y ≤ x).
+Definition seq x y := (x ≤ y) ∧ (x ≥ y).
 
 Hint Unfold seq : core.
 

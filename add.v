@@ -1,19 +1,18 @@
-From Stdlib Require Import Utf8_core Setoid FunctionalExtensionality Eqdep.
+From Stdlib Require Import Setoid FunctionalExtensionality.
 From SN Require Import base equiv.
 
 (** Chapter 8 *)
 
-Fixpoint sadd (x y : surreal) {struct x}: surreal :=
-  match x, y with
-  | [lx, rx], [ly, ry] =>
+Fixpoint sadd (x y : surreal) {struct x} : surreal :=
+  match x with
+  | [lx, rx] =>
     let fix sadd' y :=
       match y with
-      | [ly, ry] => [
-        (λ i, sadd (lx i) y) ∪ λ i, sadd' (ly i),
-        (λ j, sadd (rx j) y) ∪ λ j, sadd' (ry j) ]
-      end in [
-        (λ i, sadd (lx i) y) ∪ λ i, sadd' (ly i),
-        (λ j, sadd (rx j) y) ∪ λ j, sadd' (ry j) ]
+      | [ly, ry] =>
+        [ (λ i, sadd (lx i) y) ∪ λ i, sadd' (ly i),
+          (λ j, sadd (rx j) y) ∪ λ j, sadd' (ry j) ]
+      end in
+    sadd' y
   end.
 
 Infix "+" := sadd : surreal_scope.
@@ -38,38 +37,38 @@ Qed.
 Module AddExample1.
 
 Definition explore_add x y := ∃ L R (l : L → surreal) (r : R → surreal),
-  x + y = [l, r] /\ [l, r] = zero.
+  x + y = [l, r] /\ [l, r] = 0.
 
 Ltac explore_add := unfold explore_add; do 4 eexists; split; [
   rewrite sadd_equation | ].
 
-Definition ess' := ess ∪ ess.
+Definition ess' := ∅ ∪ ∅.
 Definition zero' := [ess', ess'].
 
 Ltac solve_add :=
   match goal with
   | |- _ + _ = ?tm => unfold tm
-  end; rewrite sadd_equation; cbn [one zero]; f_equal; apply functional_extensionality;
+  end; rewrite sadd_equation; f_equal; apply functional_extensionality;
   intros p; destruct p; match goal with
   | tm : Empty_set |- _ => destruct tm
   | tm : unit |- _ => unfold singleton, union
   end; auto with surreal.
 
-Theorem szpz : zero + zero = zero'. solve_add. Qed.
+Theorem szpz : 0 + 0 = zero'. solve_add. Qed.
 Hint Resolve szpz : surreal.
 
-Definition one' := [singleton zero' ∪ ess, ess'].
-Definition one'' := [ess ∪ singleton zero', ess'].
+Definition one' := [singleton zero' ∪ ∅, ess'].
+Definition one'' := [∅ ∪ singleton zero', ess'].
 
-Theorem sopz : one + zero = one'. solve_add. Qed.
+Theorem sopz : 1 + 0 = one'. solve_add. Qed.
 Hint Resolve sopz : surreal.
 
-Theorem szpo : zero + one = one''. solve_add. Qed.
+Theorem szpo : 0 + 1 = one''. solve_add. Qed.
 Hint Resolve szpo : surreal.
 
 Definition opo := [singleton one'' ∪ singleton one', ess'].
 
-Theorem sopo : one + one = opo. solve_add. Qed.
+Theorem sopo : 1 + 1 = opo. solve_add. Qed.
 
 End AddExample1.
 
@@ -92,16 +91,16 @@ Lemma sadd_sle_comm : ∀ x y : surreal,
   x + y ≤ y + x.
 Proof. apply sadd_comm. Qed.
 
-Theorem sadd_zero_eqs : ∀ x : surreal, x + zero ≡s x.
+Theorem sadd_zero_eqs : ∀ x : surreal, x + 0 ≡s x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
-  rewrite sadd_equation. cbn [zero]. split.
+  rewrite sadd_equation. split.
   all: split; [intros [p | []] | intros p].
   all: try exists p; try exists (inl p); simpl; auto.
 Qed.
 
 (** T10 *)
-Corollary sadd_zero : ∀ x : surreal, x + zero ≡ x.
+Corollary sadd_zero : ∀ x : surreal, x + 0 ≡ x.
 Proof. intros. apply eqs_eq. apply sadd_zero_eqs. Qed.
 
 (** Chapter 10 *)
@@ -187,18 +186,11 @@ Proof.
   auto using sadd_sle_mono.
 Qed.
 
-(** negative and minus*)
-Fixpoint sopp x :=
-  match x with
-  | [lx, rx] => [ λ j, sopp (rx j), λ i, sopp (lx i) ]
-  end.
-
-Notation "- x" := (sopp x) : surreal_scope.
 Definition ssub x y := x + (- y).
 Infix "-" := ssub : surreal_scope.
 
 (** T15 *)
-Theorem ssub_diag : forall x : surreal, x - x ≡ zero.
+Theorem ssub_diag : forall x : surreal, x - x ≡ 0.
 Proof.
   unfold ssub.
   induction x as [Lx Rx lx IH1 rx IH2].
@@ -215,7 +207,7 @@ Proof.
     apply sadd_snge_mono_r. auto.
   - rename r into p.
     eapply trans. 1: apply (IH2 p).
-    rewrite (sadd_equation (rx p) ([λ j, - (rx j), λ i, - (lx i)])).
+    rewrite (sadd_equation (rx p) ([λ j, (- rx j), λ i, (- lx i)])).
     destruct (rx p) as [LRx RRy lrx rry] eqn:E0.
     solve_snge. exists (inr p). cbn [union].
     rewrite <- E0. reflexivity.
@@ -246,7 +238,7 @@ Qed.
 
 (** T16 *)
 Theorem sopp_involutive : forall x : surreal,
-  - (- x) = x.
+  (- (- x)) = x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   cbn [sopp].
@@ -255,11 +247,11 @@ Qed.
 
 (* T19 *)
 Lemma sopp_sle_mono : forall x y : surreal,
-  x ≤ y → - y ≤ - x.
+  x ≤ y → (- y) ≤ (- x).
 Proof.
   intros.
   apply sadd_sle_mono_l_rev with x.
-  transitivity (y + - y).
+  transitivity (y + (- y)).
   apply sadd_sle_mono_r; auto.
   rewrite (ssub_diag x), (ssub_diag y).
   reflexivity.

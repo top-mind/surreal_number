@@ -4,5 +4,10 @@ equiv.v
 add.v
 add_facts.v
 pseudo.v
+mul.v
 
 exercises.v
+
+ONAG/game.v
+ONAG/ch00.v
+ONAG/ch09.v

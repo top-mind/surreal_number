@@ -1,4 +1,5 @@
-From Stdlib Require Import Utf8_core.
+From Stdlib Require Export Utf8_core.
+
 Ltac inv H := inversion H; clear H; subst.
 
 Inductive surreal :=
@@ -32,13 +33,12 @@ with snge : surreal → surreal → Prop :=
 where "x ≤ y" := (sle x y) : surreal_scope
 and "x ≱ y" := (snge x y) : surreal_scope.
 
-Notation "x ≤ y ≤ z" := (x ≤ y ∧ y ≤ z) (at level 70, no associativity) : surreal_scope.
-Notation "x ≱ y ≤ z" := (x ≱ y ∧ y ≤ z) (at level 70, no associativity) : surreal_scope.
-Notation "x ≤ y ≱ z" := (x ≤ y ∧ y ≱ z) (at level 70, no associativity) : surreal_scope.
-Notation "x ≱ y ≱ z" := (x ≱ y ∧ y ≱ z) (at level 70, no associativity) : surreal_scope.
 
 Notation "x ≥ y" := (y ≤ x) (only parsing, at level 70) : surreal_scope.
 Notation "x ≰ y" := (y ≱ x) (only parsing, at level 70) : surreal_scope.
+
+Notation "x < y" := (x ≤ y ∧ x ≱ y) (at level 70, no associativity) : surreal_scope.
+Notation "x > y" := (y < x) (at level 70, no associativity) : surreal_scope.
 
 From Stdlib Require Import Eqdep.
 
@@ -82,16 +82,17 @@ Abort.
 
 Lemma sle_not_snge:
   ∀ x y : surreal, x ≤ y → ~ y ≱ x.
+Proof.
   intros x y.
   apply proj1 with (y ≤ x → ~ x ≱ y).
   revert y.
   induction x as [Lx Rx lx IH1 rx IH2].
   induction y as [Ly Ry ly IH3 ry IH4].
   split; intros Hle Hnge; sinv Hle; sinv Hnge.
-  1: destruct (IH1 i [ly, ry]) as [_ contra].
-  2: destruct (IH4 j) as [_ contra].
-  3: destruct (IH3 i) as [contra _].
-  4: destruct (IH2 j [ly, ry]) as [contra _].
+  1: destruct (IH1 i [ly, ry]).
+  2: destruct (IH4 j).
+  3: destruct (IH3 i).
+  4: destruct (IH2 j [ly, ry]).
   all: intuition.
 Qed.
 
@@ -152,30 +153,49 @@ Fixpoint num (s : surreal) : Prop :=
     (∀ i : L, ∀ j : R, l i ≱ r j)
   end.
 
-(* ess means empty surreal set *)
-Definition ess : Empty_set → surreal := λ e, match e with end.
+Notation "∅" := (λ e : Empty_set, match e with end).
 
-Definition zero : surreal := [ess, ess].
+Notation "0" := [∅, ∅].
 
 Definition singleton (x : surreal) := λ _ : unit, x.
 
-Definition one : surreal := [singleton zero, ess].
-Definition neg_one : surreal := [ess, singleton zero].
+Notation "1" := [singleton 0, ∅].
 
-Proposition num_zero_one_neg_one : num zero /\ num one /\ num neg_one.
+Fixpoint sopp x :=
+  match x with
+  | [lx, rx] => [ λ j, sopp (rx j), λ i, sopp (lx i) ]
+  end.
+
+Notation "( - x )" := (sopp x) : surreal_scope.
+
+From Stdlib Require Import FunctionalExtensionality.
+
+Example opp_0 : (-0) = 0.
+Proof.
+  simpl. f_equal; extensionality i; tauto.
+Qed.
+
+Example neg_one : (-1) = [∅, singleton 0].
+Proof.
+  simpl.
+  f_equal. extensionality i; tauto.
+  rewrite <- opp_0. reflexivity.
+Qed.
+
+Proposition num_0_1_m1 : num 0 /\ num 1 /\ num (-1).
 Proof.
   repeat split; intros [].
   intros [].
 Qed.
 
-(** Chapter 3 Proofs *)
-Proposition cmp_neg_zero_one :
-  neg_one ≱ zero ≱ one /\ neg_one ≱ one.
-Proof.
-  repeat split.
+Proposition cmp_m1_0_1 :
+  (-1) < 0 ∧ 0 < 1 ∧ (-1) < 1.
+Proof with try intros [].
+  rewrite neg_one.
+  repeat split...
   1: right.
   2,3: left.
-  all: exists tt; constructor; intros [].
+  all: exists tt; split...
 Qed.
 
 (** Chapter 4 Bad Numbers *)
@@ -221,7 +241,7 @@ Proof. apply trans. Qed.
 
 (** Chapter 5 Progress *)
 
-(** The lemma doesn't rely on classical logic (or eqdep) *)
+(** This lemma doesn't rely on eqdep *)
 Lemma range_aux : forall x : surreal,
   match x with
   | snlr L R l r =>

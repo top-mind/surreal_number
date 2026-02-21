@@ -6,7 +6,9 @@
 *.aux
 
 # Generated Makefile configuration
+Makefile
 Makefile.conf
+.Makefile.d
 
 # Generated documentation
 html/

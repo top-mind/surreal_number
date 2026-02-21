@@ -84,7 +84,7 @@ rocq makefile -f _RocqProject -o Makefile
 - Imports:
   - Use `From Stdlib Require Import ...` first; keep `Utf8_core` in files that use Unicode notations.
   - Import project modules with `From SN Require Import ...` after Stdlib imports.
-  - Add `Classical` or `Eqdep` only in files that need them; keep scope local.
+  - Add `Classical` only in files that need them; keep scope local.
 - Notations and scopes:
   - Keep custom notation in `surreal_scope` and open it explicitly when needed.
   - Prefer existing notations for relations and operators (`≤`, `≱`, `≡`, `∪`, `+`, `-`).

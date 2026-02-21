@@ -1,13 +1,12 @@
 (** # <img src="../figs/num_relations.svg"> # *)
 
-From Stdlib Require Import Utf8_core.
 From SN Require Import base equiv add.
 
-Definition zz := [singleton zero, singleton zero].
+Definition zz := [singleton 0, singleton 0].
 
-Definition g0 := [singleton zz, ess].
+Definition g0 := [singleton zz, ∅].
 
-Theorem g0_is_0 : g0 ≡ zero.
+Theorem g0_is_0 : g0 ≡ 0.
 Proof.
   do 2 constructor; try intros [].
   constructor; right.
@@ -18,7 +17,7 @@ Qed.
 Theorem zz_not_num : ~ num zz.
 Proof.
   intros [_ [_ H]].
-  apply (sle_not_snge _ _ (sle_refl zero)), (H tt tt).
+  apply (sle_not_snge _ _ (sle_refl 0)), (H tt tt).
 Qed.
 
 Theorem g0_not_num : ~ num g0.
@@ -27,7 +26,7 @@ Proof.
   apply zz_not_num, (H tt).
 Qed.
 
-Definition g1 := [singleton g0, ess].
+Definition g1 := [singleton g0, ∅].
 
 Theorem g1_not_num : ~ num g1.
 Proof.
@@ -35,7 +34,7 @@ Proof.
   apply g0_not_num, (H tt).
 Qed.
 
-Theorem g1_is_1 : g1 ≡ one.
+Theorem g1_is_1 : g1 ≡ 1.
 Proof.
   apply eqs_eq.
   split.
@@ -70,12 +69,12 @@ Goal ∃ x, rbound x ∧ ~ lbound x.
     rewrite g0_is_0 in H.
     sinv H.
     specialize (H tt).
-    apply (sle_not_snge _ _ (sle_refl zero)), H.
+    apply (sle_not_snge _ _ (sle_refl 0)), H.
 Qed.
 
-Definition g0' := [ess, singleton zz].
+Definition g0' := [∅, singleton zz].
 
-Theorem g0'_is_0 : g0' ≡ zero.
+Theorem g0'_is_0 : g0' ≡ 0.
 Proof.
   do 2 constructor; try intros [].
   constructor; left.
@@ -95,21 +94,21 @@ Goal ∃ x, lbound x ∧ ~ rbound x.
     rewrite g0'_is_0 in H.
     sinv H.
     specialize (H0 tt).
-    apply (sle_not_snge _ _ (sle_refl zero)), H0.
+    apply (sle_not_snge _ _ (sle_refl 0)), H0.
 Qed.
 
-Definition oz := [singleton one, singleton zero].
+Definition oz := [singleton 1, singleton 0].
 
 Theorem zz_ngeq_oz : zz ≱ oz.
 Proof.
   constructor. left. exists tt.
-  split; intros. apply cmp_neg_zero_one.
+  split; intros. apply cmp_m1_0_1.
   destruct j.
 Qed.
 
 Definition zzoz := [singleton zz, singleton oz].
 
-Theorem zzoz_is_0 : zzoz ≡ zero.
+Theorem zzoz_is_0 : zzoz ≡ 0.
 Proof.
   do 2 constructor; try intros []; constructor.
   - right. exists tt. reflexivity.
@@ -119,7 +118,7 @@ Qed.
 Goal ∃ x, weak_num x ∧ ~ lbound x ∧ ~ rbound x.
   exists zzoz. split.
   - intros i j. apply zz_ngeq_oz.
-  - split; intros H; specialize (H tt); rewrite zzoz_is_0 in H; apply (sle_not_snge _ _ (sle_refl zero)).
+  - split; intros H; specialize (H tt); rewrite zzoz_is_0 in H; apply (sle_not_snge _ _ (sle_refl 0)).
     + apply trans2 with zz; auto.
       destruct (range_aux zz) as [H1 _].
       apply (H1 tt).
@@ -130,7 +129,7 @@ Qed.
 
 Definition zzzz := [singleton zz, singleton zz].
 
-Theorem zzzz_is_0 : zzzz ≡ zero.
+Theorem zzzz_is_0 : zzzz ≡ 0.
 Proof.
   do 2 constructor; try intros []; constructor; [right | left]; exists tt; reflexivity.
 Qed.
@@ -175,7 +174,7 @@ Qed.
 
 Definition geq_num (x : surreal) : {y : surreal | num y ∧ x ≤ y}.
   induction x as [L R l IH1 r _].
-  exists [(fun l => proj1_sig (IH1 l)), ess].
+  exists [(fun l => proj1_sig (IH1 l)), ∅].
   split.
   - split.
     intros i. apply (proj2_sig (IH1 i)).
@@ -187,7 +186,7 @@ Defined.
 
 Definition leq_num (x : surreal) : {y : surreal | num y ∧ y ≤ x}.
   induction x as [L R l _ r IH2].
-  exists [ess, (fun r => proj1_sig (IH2 r))].
+  exists [∅, (fun r => proj1_sig (IH2 r))].
   split.
   - split.
     intros [].
@@ -197,4 +196,3 @@ Definition leq_num (x : surreal) : {y : surreal | num y ∧ y ≤ x}.
     solve_snge.
     exists i. apply (proj2_sig (IH2 i)).
 Defined.
-

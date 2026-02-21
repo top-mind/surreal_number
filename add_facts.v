@@ -9,7 +9,7 @@ Proof.
   apply sadd_zero.
 Qed.
 
-Theorem T18 : ∀ x y, - (x + y) ≡s - x + - y.
+Theorem T18 : ∀ x y, (- (x + y)) ≡s (- x) + (- y).
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   induction y as [Ly Ry ly IH3 ry IH4].
@@ -22,7 +22,7 @@ Proof.
   all: try reflexivity.
 Qed.
 
-Theorem T18' : ∀ x y, - (x + y) ≡ - x + - y.
+Theorem T18' : ∀ x y, (- (x + y)) ≡ (- x) + (- y).
 Proof.
   split.
   all: apply sadd_sle_mono_l_rev with (z := x + y).
