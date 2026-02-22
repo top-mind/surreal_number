@@ -1,13 +1,11 @@
 -Q . SN
-base.v
-equiv.v
-add.v
-add_facts.v
-pseudo.v
-mul.v
-
-exercises.v
-
-ONAG/game.v
-ONAG/ch00.v
-ONAG/ch09.v
+./mul.v
+./pseudo.v
+./add_facts.v
+./ONAG/ch00.v
+./ONAG/ch09.v
+./ONAG/game.v
+./add.v
+./base.v
+./exercises.v
+./equiv.v

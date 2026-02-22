@@ -286,7 +286,8 @@ Qed.
 Theorem num_bound : forall x,
   num x → bound x.
 Proof with auto.
-  induction x as [L R l IH1 r IH2]; split; destruct H as [H1 [H2 Hnge]]; simpl; intros.
+  induction x as [L R l IH1 r IH2]; split; destruct H as [H1 [H2 Hnge]];
+    simpl; intros.
   - specialize (IH1 i (H1 i)). specialize (Hnge i).
     destruct (l i) as [L0 R0 l0 r0] eqn:E.
     constructor...

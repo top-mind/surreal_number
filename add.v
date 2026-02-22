@@ -3,44 +3,32 @@ From SN Require Import base equiv.
 
 (** Chapter 8 *)
 
-Fixpoint sadd (x y : surreal) {struct x} : surreal :=
+Fixpoint sadd (x : surreal) : surreal → surreal :=
   match x with
   | [lx, rx] =>
-    let fix sadd' y :=
+    fix sadd_y (y : surreal) : surreal :=
       match y with
       | [ly, ry] =>
-        [ (λ i, sadd (lx i) y) ∪ λ i, sadd' (ly i),
-          (λ j, sadd (rx j) y) ∪ λ j, sadd' (ry j) ]
-      end in
-    sadd' y
+        [ (λ i, sadd (lx i) y) ∪ λ i, sadd_y (ly i),
+          (λ j, sadd (rx j) y) ∪ λ j, sadd_y (ry j) ]
+      end
   end.
 
 Infix "+" := sadd : surreal_scope.
 
-Theorem sadd_equation : ∀ x y,
-  x + y =
-    match x, y with
-    | [lx, rx], [ly, ry] =>
-      [ (λ i, lx i + y) ∪ λ i, x + ly i,
-        (λ j, rx j + y) ∪ λ j, x + ry j ]
-    end.
-Proof.
-  destruct x as [Lx Rx lx rx].
-  destruct y as [Ly Ry ly ry].
-  cbn [sadd]; unfold union.
-  f_equal; apply functional_extensionality; intros [|].
-  all: match goal with
-  | |- _ ?tm = _ => destruct tm
-  end; reflexivity.
-Qed.
+Lemma sadd_rewrite : ∀ Lx Rx Ly Ry (lx : Lx → surreal) (rx : Rx → surreal)
+  (ly : Ly → surreal) (ry : Ry → surreal),
+  [lx, rx] + [ly, ry] =
+    [ (λ i, lx i + [ly, ry]) ∪ λ i, [lx, rx] + ly i,
+      (λ j, rx j + [ly, ry]) ∪ λ j, [lx, rx] + ry j ].
+Proof. reflexivity. Qed.
 
 Module AddExample1.
 
 Definition explore_add x y := ∃ L R (l : L → surreal) (r : R → surreal),
   x + y = [l, r] /\ [l, r] = 0.
 
-Ltac explore_add := unfold explore_add; do 4 eexists; split; [
-  rewrite sadd_equation | ].
+Ltac explore_add := unfold explore_add; do 4 eexists; split.
 
 Definition ess' := ∅ ∪ ∅.
 Definition zero' := [ess', ess'].
@@ -48,7 +36,7 @@ Definition zero' := [ess', ess'].
 Ltac solve_add :=
   match goal with
   | |- _ + _ = ?tm => unfold tm
-  end; rewrite sadd_equation; f_equal; apply functional_extensionality;
+  end; rewrite sadd_rewrite; f_equal; apply functional_extensionality;
   intros p; destruct p; match goal with
   | tm : Empty_set |- _ => destruct tm
   | tm : unit |- _ => unfold singleton, union
@@ -78,7 +66,7 @@ Theorem sadd_comm_eqs : ∀ x y : surreal, x + y ≡s y + x.
 Proof.
   induction x as [Lx Rx lx IHlx rx IHRx].
   induction y as [Ly Ry ly IHly ry IHRy].
-  do 2 rewrite sadd_equation. split.
+  split.
   all: eapply set_eq_trans; [apply set_eq_union_comm | ]; apply union_mor; split.
   all: eauto.
 Qed.
@@ -94,7 +82,7 @@ Proof. apply sadd_comm. Qed.
 Theorem sadd_zero_eqs : ∀ x : surreal, x + 0 ≡s x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
-  rewrite sadd_equation. split.
+  split.
   all: split; [intros [p | []] | intros p].
   all: try exists p; try exists (inl p); simpl; auto.
 Qed.
@@ -104,12 +92,6 @@ Corollary sadd_zero : ∀ x : surreal, x + 0 ≡ x.
 Proof. intros. apply eqs_eq. apply sadd_zero_eqs. Qed.
 
 (** Chapter 10 *)
-Lemma sadd_rewrite : ∀ Lx Rx Ly Ry (lx : Lx → surreal) (rx : Rx → surreal)
-  (ly : Ly → surreal) (ry : Ry → surreal),
-  [lx, rx] + [ly, ry] =
-    [ (λ i, lx i + [ly, ry]) ∪ λ i, [lx, rx] + ly i,
-      (λ j, rx j + [ly, ry]) ∪ λ j, [lx, rx] + ry j ].
-Proof. intros. apply sadd_equation. Qed.
 
 Theorem sadd_assoc_eqs : ∀ x y z : surreal,
   (x + y) + z ≡s x + (y + z).
@@ -117,14 +99,12 @@ Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   induction y as [Ly Ry ly IH3 ry IH4].
   induction z as [Lz Rz lz IH5 rz IH6].
-  do 4 rewrite sadd_rewrite.
   do 2 split.
   all: try (intros [[p|p]|p];
     [exists (inl p) | exists (inr (inl p)) | exists (inr (inr p))]).
   all: try (intros [p|[p|p]];
     [exists (inl (inl p)) | exists (inl (inr p)) | exists (inr p)]).
   all: cbn [union].
-  all: try rewrite <- sadd_rewrite.
   all: auto.
 Qed.
 
@@ -141,7 +121,10 @@ Proof with auto.
   induction z as [Lz Rz lz IH5 rz IH6].
   do 2 rewrite sadd_rewrite.
   split; intros.
-  - split. all: intros [p|p]; [sinv H; rewrite <- sadd_rewrite | solve_snge; exists (inr p)]; cbn [union].
+  - split.
+    all: intros [p|p];
+      [sinv H; rewrite <- sadd_rewrite | solve_snge; exists (inr p)];
+      cbn [union].
     + apply IH1...
     + apply IH5...
     + apply IH4...
@@ -199,16 +182,16 @@ Proof.
   do 2 split; intros []; cbn [union].
   - rename l into p.
     eapply trans2. 2: apply (IH1 p).
-    rewrite sadd_equation.
     destruct (lx p) as [LLx RRx llx rrx] eqn:E0.
+    rewrite sadd_rewrite.
     solve_snge. exists (inr p). cbn [union].
     rewrite <- E0. reflexivity.
   - eapply trans2. 2: apply (IH2 r).
     apply sadd_snge_mono_r. auto.
   - rename r into p.
     eapply trans. 1: apply (IH2 p).
-    rewrite (sadd_equation (rx p) ([λ j, (- rx j), λ i, (- lx i)])).
     destruct (rx p) as [LRx RRy lrx rry] eqn:E0.
+    rewrite sadd_rewrite.
     solve_snge. exists (inr p). cbn [union].
     rewrite <- E0. reflexivity.
   - eapply trans. 1: apply (IH1 l).
@@ -277,7 +260,7 @@ Proof with
   induction y as [Ly Ry ly IH3 ry IH4].
   intros Hx Hy.
   inversion Hx as [? []]; inversion Hy as [? []].
-  rewrite sadd_equation. cbn [num].
+  rewrite sadd_rewrite. cbn [num].
   intuition; cbn [union]...
   1: apply trans with (y:=[lx, rx] + [ly, ry])...
   2: apply trans2 with (y:=[lx, rx] + [ly, ry])...
