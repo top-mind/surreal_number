@@ -16,22 +16,8 @@ Proof.
   rewrite sadd_rewrite.
   cbn [sopp].
   rewrite sadd_rewrite.
-  do 2 split.
-  all: intros [p|p]; [exists (inl p) | exists (inr p)]; cbn [union].
-  all: try rewrite IH1; try rewrite IH2; try rewrite IH3; try rewrite IH4.
-  all: try reflexivity.
-Qed.
-
-Theorem T18' : ∀ x y, (- (x + y)) ≡ (- x) + (- y).
-Proof.
-  split.
-  all: apply sadd_sle_mono_l_rev with (z := x + y).
-  all: rewrite (ssub_diag (x + y)).
-  all: rewrite (sadd_comm (-x) (-y)).
-  all: rewrite <-sadd_assoc.
-  all: rewrite sadd_assoc with (x:=x).
-  all: rewrite (ssub_diag y).
-  all: rewrite sadd_zero.
-  all: rewrite (ssub_diag x).
-  all: reflexivity.
+  split; intros [i|i];
+    try exists (inl i);
+    try exists (inr i);
+    cbn [union]; auto.
 Qed.

@@ -81,90 +81,53 @@ Proof.
     + solve_snge. exists (inl j). reflexivity.
 Qed.
 
-Definition set_eq {A B} (f : A → surreal) (g : B → surreal) :=
-  (∀ i, ∃ j, f i ≡ g j) ∧ (∀ j, ∃ i, f i ≡ g j).
+Reserved Notation "x ≡s y" (at level 70).
 
-Lemma set_eq_refl :
-  ∀ {A} (f : A → surreal), set_eq f f.
-Proof. split; intros i; exists i; reflexivity. Qed.
-
-Lemma set_eq_sym :
-  ∀ {A B} (f : A → surreal) (g : B → surreal),
-  set_eq f g → set_eq g f.
-Proof.
-  intros A B f g [Hfg Hgf]. split; intros i;
-  [ destruct (Hgf i) | destruct (Hfg i) ];
-  eexists; symmetry; eauto.
-Qed.
-
-Lemma set_eq_trans :
-  ∀ {A B C} (f : A → surreal) (g : B → surreal) (h : C → surreal),
-  set_eq f g → set_eq g h → set_eq f h.
-Proof.
-  intros A B C f g h [Hfg Hgf] [Hgh Hhg]. split; intros i.
-  - destruct (Hfg i) as [j Hij].
-    destruct (Hgh j) as [k Hjk].
-    eexists; etransitivity; eauto.
-  - destruct (Hhg i) as [j Hji].
-    destruct (Hgf j) as [k Hkj].
-    eexists; etransitivity; eauto.
-Qed.
-
-Lemma set_eq_union_comm :
-  ∀ {A B} (f : A → surreal) (g : B → surreal),
-  set_eq (f ∪ g) (g ∪ f).
-Proof.
-  split; intros [p | p].
-  all: match goal with
-  | p : ?T |- ∃ _ : ?T + _, _ => exists (inl p)
-  | p : ?T |- ∃ _ : _ + ?T, _ => exists (inr p)
-  end; unfold union; reflexivity.
-Qed.
-
-Lemma union_mor :
-  ∀ {A B C D} (f : A → surreal) (g : B → surreal)
-    (f' : C → surreal) (g' : D → surreal),
-  set_eq f f' → set_eq g g' →
-  set_eq (f ∪ g) (f' ∪ g').
-Proof.
-  intros A B C D f g f' g' [Hff' Hf'f] [Hgg' Hg'g].
-  split; intros [i | i].
-  all: match goal with
-  | i : ?T, H : ∀ _ : ?T, _ |- _ =>
-    destruct (H i) as [j Hj]
-  end; match goal with
-  | p : ?T |- ∃ _ : ?T + _, _ => exists (inl p)
-  | p : ?T |- ∃ _ : _ + ?T, _ => exists (inr p)
-  end; unfold union; auto.
-Qed.
-
-Definition eqs (x y : surreal) :=
-  match x, y with
-  | [lx, rx], [ly, ry] => set_eq lx ly ∧ set_eq rx ry
-  end.
-
-Infix "≡s" := eqs (at level 70).
+Inductive eqs : surreal → surreal → Prop :=
+  | eqs_intro : ∀ Lx Rx Ly Ry (lx : Lx → surreal) (rx : Rx → surreal)
+    (ly : Ly → surreal) (ry : Ry → surreal),
+    (∀ i, ∃ j, lx i ≡s ly j) → (∀ j, ∃ i, lx i ≡s ly j) →
+    (∀ i, ∃ j, rx i ≡s ry j) → (∀ j, ∃ i, rx i ≡s ry j) →
+    eqs [lx, rx] [ly, ry]
+where "x ≡s y" := (eqs x y).
 
 Theorem eqs_refl : ∀ x : surreal, x ≡s x.
 Proof.
-  destruct x. split; apply set_eq_refl.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  split; intros i; exists i; auto.
 Qed.
 
 Theorem eqs_sym : ∀ x y : surreal, x ≡s y → y ≡s x.
 Proof.
-  destruct x as [Lx Rx lx rx].
-  destruct y as [Ly Ry ly ry].
-  intros [Hlx Hrx]. split; apply set_eq_sym; assumption.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  intros [Ly Ry ly ry] H.
+  eqdep_inv H.
+  split; intros i;
+  match type of i with
+  | ?T => match goal with
+    | H : ∀ _ : T, ∃ _,_ |- _ => destruct (H i) as [j Hj]; exists j; auto
+    end
+  end.
 Qed.
 
 Theorem eqs_trans : ∀ x y z : surreal,
   x ≡s y → y ≡s z → x ≡s z.
 Proof.
-  destruct x as [Lx Rx lx rx].
+  induction x as [Lx Rx lx IH1 rx IH2].
   destruct y as [Ly Ry ly ry].
   destruct z as [Lz Rz lz rz].
-  intros [Hlx Hrx] [Hly Hry].
-  split; eapply set_eq_trans; eauto.
+  intros H1 H2. eqdep_inv H1. eqdep_inv H2.
+  split; intros i;
+  match type of i with
+  | ?T => match goal with
+    | H : ∀ _ : T, ∃ _,_ |- ∃ _ : ?V, _ => destruct (H i) as [j Hj];
+      match type of j with
+      | ?U => match goal with
+        | H : ∀ _ : U, ∃ _ : V, _ |- _ => destruct (H j) as [k Hk]; exists k; eauto
+        end
+      end
+    end
+  end.
 Qed.
 
 Add Relation surreal eqs
@@ -174,13 +137,14 @@ Add Relation surreal eqs
 
 Theorem eqs_eq : ∀ x y : surreal, x ≡s y → x ≡ y.
 Proof.
-  intros [Lx Rx lx rx] [Ly Ry ly ry] [[Hlx Hly] [Hrx Hry]].
-  do 2 split; intros p.
-  all: match goal with
-  | p : ?T, H : ∀ _ : ?T, _ |- _ =>
-    destruct (H p) as [j Hj]
-  end;
-  solve_snge; eexists; apply Hj.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  intros [Ly Ry ly ry] H. eqdep_inv H.
+  do 2 split; intros i; solve_snge;
+  match type of i with
+  | ?T => match goal with
+    | H : ∀ _ : T, ∃ _,_ |- _ => destruct (H i) as [j Hj]
+    end
+  end; exists j; try apply IH1; try apply IH2; auto.
 Qed.
 
 Add Morphism seq with signature eqs ==> eqs ==> iff as seq_mor.

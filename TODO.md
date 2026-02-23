@@ -9,3 +9,4 @@
 - [ ] Solve eq_num problem
 # urgent
 - [ ] rewrite eqs ≡s
+- [ ] use eqdep_inv

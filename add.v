@@ -65,26 +65,28 @@ End AddExample1.
 Theorem sadd_comm_eqs : ∀ x y : surreal, x + y ≡s y + x.
 Proof.
   induction x as [Lx Rx lx IHlx rx IHRx].
-  induction y as [Ly Ry ly IHly ry IHRy].
+  induction y as [Ly Ry ly IHly ry IHry].
+  rewrite !sadd_rewrite.
   split.
-  all: eapply set_eq_trans; [apply set_eq_union_comm | ]; apply union_mor; split.
-  all: eauto.
+  all: intros [i|i]; [exists (inr i) | exists (inl i)]; cbn [union]; auto.
 Qed.
 
 (** T9 *)
 Corollary sadd_comm : ∀ x y : surreal, x + y ≡ y + x.
 Proof. intros. apply eqs_eq. apply sadd_comm_eqs. Qed.
 
-Lemma sadd_sle_comm : ∀ x y : surreal,
+Corollary sadd_sle_comm : ∀ x y : surreal,
   x + y ≤ y + x.
 Proof. apply sadd_comm. Qed.
 
 Theorem sadd_zero_eqs : ∀ x : surreal, x + 0 ≡s x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
-  split.
-  all: split; [intros [p | []] | intros p].
-  all: try exists p; try exists (inl p); simpl; auto.
+  rewrite sadd_rewrite.
+  split;
+    try (intros [i|[]]; exists i);
+    try (intros i; exists (inl i));
+  cbn [union]; auto.
 Qed.
 
 (** T10 *)
@@ -99,13 +101,16 @@ Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   induction y as [Ly Ry ly IH3 ry IH4].
   induction z as [Lz Rz lz IH5 rz IH6].
-  do 2 split.
-  all: try (intros [[p|p]|p];
-    [exists (inl p) | exists (inr (inl p)) | exists (inr (inr p))]).
-  all: try (intros [p|[p|p]];
-    [exists (inl (inl p)) | exists (inl (inr p)) | exists (inr p)]).
-  all: cbn [union].
-  all: auto.
+  rewrite !sadd_rewrite.
+  split;
+  try intros [[i|i]|i];
+  try intros [i|[i|i]];
+  try exists (inl i);
+  try exists (inr (inl i));
+  try exists (inr (inr i));
+  try exists (inl (inl i));
+  try exists (inl (inr i));
+  try exists (inr i); cbn [union]; auto.
 Qed.
 
 (** T11 *)

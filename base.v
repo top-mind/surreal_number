@@ -153,7 +153,9 @@ Fixpoint num (s : surreal) : Prop :=
     (∀ i : L, ∀ j : R, l i ≱ r j)
   end.
 
-Notation "∅" := (λ e : Empty_set, match e with end).
+Definition ess (e : Empty_set) : surreal := match e with end.
+
+Notation "∅" := ess.
 
 Notation "0" := [∅, ∅].
 
@@ -318,4 +320,8 @@ Ltac solve_snge := match goal with
   | |- [?X, ?Y] ≱ ?Z =>
       destruct Z as [tacL tacR tacl tacr] eqn:tacE; constructor; right; rewrite <-tacE in *; clear tacL tacR tacl tacr tacE
   | _ => fail 1 "Goal is not of the form x ≱ y with x or y a surreal number constructor"
+  end.
+
+Ltac eqdep_inv H := inv H; repeat match goal with
+  | H : existT _ _ _ = _ |- _ => apply inj_pair2 in H; subst
   end.

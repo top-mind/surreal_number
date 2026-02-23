@@ -17,7 +17,7 @@ Inductive state : Game → bool → bool → Prop :=
 Theorem state_not_and : ∀ G, (state G true true → ~ state G true false) ∧ (state G false true → ~ state G false false).
 Proof.
   induction G as [L R l IHl r IHr].
-  split; intros H1 H2; ginv H1; ginv H2; destruct H0 as [i H0].
+  split; intros H1 H2; eqdep_inv H1; eqdep_inv H2; destruct H0 as [i H0].
   - destruct (IHl i) as [_ ?].
     intuition.
   - destruct (IHr i) as [? _].
@@ -94,7 +94,7 @@ From SN Require Import add.
 Theorem state_neg : ∀ G b, (state G true b ↔ state (-G) false b) ∧ (state G false b ↔ state (-G) true b).
 Proof.
   induction G as [L R l IHl r IHr].
-  do 2 split; intros H; ginv H; simpl; constructor.
+  do 2 split; intros H; eqdep_inv H; simpl; constructor.
   all: try (destruct H5 as [i]; exists i).
   all: try intros.
   all: try apply IHl; try apply IHr; auto.

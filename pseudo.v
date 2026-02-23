@@ -1,6 +1,6 @@
 (** # <img src="../figs/num_relations.svg"> # *)
 
-From SN Require Import base equiv add.
+From SN Require Import base equiv.
 
 Definition zz := [singleton 0, singleton 0].
 
@@ -36,11 +36,11 @@ Qed.
 
 Theorem g1_is_1 : g1 ≡ 1.
 Proof.
-  apply eqs_eq.
-  split.
-  - split; exists tt; apply g0_is_0.
-  - apply set_eq_refl.
-Qed.
+  do 2 split; intros []; unfold singleton.
+  - rewrite g0_is_0. apply cmp_m1_0_1.
+  - solve_snge. exists tt. rewrite g0_is_0. apply sle_refl.
+Qed. 
+
 
 Goal ∃ x, bound x ∧ ~ num x.
   exists g1. split.
