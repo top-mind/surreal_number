@@ -1,7 +1,8 @@
 From Stdlib Require Import Utf8_core.
 From SN Require Import base equiv add.
 
-Theorem T17 : ∀ x y, x + y - y ≡ x.
+(** T17 *)
+Theorem sadd_ssub_id : ∀ x y, x + y - y ≡ x.
 Proof.
   intros. unfold ssub.
   rewrite sadd_assoc.
@@ -9,7 +10,8 @@ Proof.
   apply sadd_zero.
 Qed.
 
-Theorem T18 : ∀ x y, (- (x + y)) ≡s (- x) + (- y).
+(** T18 *)
+Theorem sopp_sadd : ∀ x y, (- (x + y)) ≡s (- x) + (- y).
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   induction y as [Ly Ry ly IH3 ry IH4].

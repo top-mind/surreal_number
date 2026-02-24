@@ -40,34 +40,17 @@ Notation "x ≰ y" := (y ≱ x) (only parsing, at level 70) : surreal_scope.
 Notation "x < y" := (x ≤ y ∧ x ≱ y) (at level 70, no associativity) : surreal_scope.
 Notation "x > y" := (y < x) (at level 70, no associativity) : surreal_scope.
 
-From Stdlib Require Import Eqdep.
+From Stdlib Require Import Classical.
 
-Lemma sle_inv_dep : forall Lx Rx Ly Ry
-  (lx : Lx → surreal) (rx : Rx → surreal)
-  (ly : Ly → surreal) (ry : Ry → surreal),
-  [lx, rx] ≤ [ly, ry] →
-  (∀ i : Lx, lx i ≱ [ly, ry]) ∧
-  (∀ j : Ry, [lx, rx] ≱ ry j).
-Proof.
-  intros.
-  inv H.
-  apply inj_pair2 in H3, H4, H7, H8; subst. auto.
-Qed.
-
-Lemma snge_inv_dep : forall Lx Rx Ly Ry
-  (lx : Lx → surreal) (rx : Rx → surreal)
-  (ly : Ly → surreal) (ry : Ry → surreal),
-  [lx, rx] ≱ [ly, ry] →
-  (∃ i : Ly, [lx, rx] ≤ ly i) ∨
-  (∃ j : Rx, rx j ≤ [ly, ry]).
-Proof.
-  intros. inv H.
-  apply inj_pair2 in H3, H4, H7, H8; subst. auto.
-Qed.
+Ltac eqdep_inv H := inv H; repeat match goal with
+  | H : existT _ _ _ = _ |- _ => apply inj_pair2 in H; subst
+  end.
 
 Ltac sinv H := match type of H with
-  |  _ ≤ _ => apply sle_inv_dep in H; destruct H
-  |  _ ≱ _ => apply snge_inv_dep in H; destruct H as [[?i] | [?j]]
+  |  _ ≤ _ => eqdep_inv H
+  |  _ ≱ _ => eqdep_inv H; match goal with
+    | H : (∃_,_) ∨ (∃_,_) |- _ => destruct H as [[i Hi]|[j Hj]]
+    end
 end.
 
 Lemma sle_not_snge:
@@ -96,8 +79,6 @@ Proof.
   all: intuition.
 Qed.
 
-From Stdlib Require Import Classical.
-
 Lemma not_snge_sle :
   ∀ x y : surreal, ~ x ≱ y -> y ≤ x.
 Proof.
@@ -119,26 +100,6 @@ Corollary not_sle_snge :
 Proof.
   intros. apply NNPP. intros HNnge.
   auto using not_snge_sle.
-Qed.
-
-Theorem sle_iff :
-  ∀ (Lx Rx Ly Ry : Type)
-    (lx : Lx → surreal) (rx : Rx → surreal)
-    (ly : Ly → surreal) (ry : Ry → surreal),
-    [lx, rx] ≤ [ly, ry] ↔
-    (∀ i : Lx, ~ ([ly, ry] ≤ lx i)) ∧
-    ∀ j : Ry, ~ (ry j ≤ [lx, rx]).
-Proof.
-  split; intros.
-  - apply sle_inv_dep in H.
-    split; intro; intros Hle.
-    1: specialize sle_not_snge with [ly, ry] (lx i).
-    2: specialize sle_not_snge with (ry j) [lx, rx].
-    all: intuition.
-  - constructor; intros.
-    1: specialize not_sle_snge with [ly, ry] (lx i).
-    2: specialize not_sle_snge with (ry j) [lx, rx].
-    all: destruct H; auto.
 Qed.
 
 Definition lbound := λ x, match x with | snlr L R l r => ∀ i : L, l i ≤ [l, r] end.
@@ -184,7 +145,7 @@ Proof.
   rewrite <- opp_0. reflexivity.
 Qed.
 
-Proposition num_0_1_m1 : num 0 /\ num 1 /\ num (-1).
+Proposition num_0_1_m1 : num 0 ∧ num 1 ∧ num (-1).
 Proof.
   repeat split; intros [].
   intros [].
@@ -320,8 +281,4 @@ Ltac solve_snge := match goal with
   | |- [?X, ?Y] ≱ ?Z =>
       destruct Z as [tacL tacR tacl tacr] eqn:tacE; constructor; right; rewrite <-tacE in *; clear tacL tacR tacl tacr tacE
   | _ => fail 1 "Goal is not of the form x ≱ y with x or y a surreal number constructor"
-  end.
-
-Ltac eqdep_inv H := inv H; repeat match goal with
-  | H : existT _ _ _ = _ |- _ => apply inj_pair2 in H; subst
   end.

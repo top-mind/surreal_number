@@ -26,7 +26,7 @@ Proof. reflexivity. Qed.
 Module AddExample1.
 
 Definition explore_add x y := ∃ L R (l : L → surreal) (r : R → surreal),
-  x + y = [l, r] /\ [l, r] = 0.
+  x + y = [l, r] ∧ [l, r] = 0.
 
 Ltac explore_add := unfold explore_add; do 4 eexists; split.
 
@@ -64,8 +64,8 @@ End AddExample1.
 
 Theorem sadd_comm_eqs : ∀ x y : surreal, x + y ≡s y + x.
 Proof.
-  induction x as [Lx Rx lx IHlx rx IHRx].
-  induction y as [Ly Ry ly IHly ry IHry].
+  induction x as [Lx Rx lx IH1 rx IH2].
+  induction y as [Ly Ry ly IH3 ry IH4].
   rewrite !sadd_rewrite.
   split.
   all: intros [i|i]; [exists (inr i) | exists (inl i)]; cbn [union]; auto.
@@ -174,6 +174,22 @@ Proof.
   auto using sadd_sle_mono.
 Qed.
 
+Ltac solve_sadd := apply sadd_mor; try reflexivity.
+
+Add Morphism sadd with signature
+  (eqs ==> eqs ==> eqs) as sadd_mor_eqs.
+Proof.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  intros [Ly Ry ly ry] H1.
+  induction x0 as [Lx0 Rx0 lx0 IH3 rx0 IH4].
+  intros [Ly0 Ry0 ly0 ry0] H2.
+  pose proof H1. pose proof H2.
+  eqdep_inv H1. eqdep_inv H2.
+  rewrite !sadd_rewrite. split;
+  intros [i|i]; ex_eq i;
+  try exists (inl j); try exists (inr j); cbn [union]; auto.
+Qed.
+
 Definition ssub x y := x + (- y).
 Infix "-" := ssub : surreal_scope.
 
@@ -251,11 +267,25 @@ Proof.
   split; apply sopp_sle_mono; apply H.
 Qed.
 
+Add Morphism sopp with signature
+  (eqs ==> eqs) as sopp_mor_eqs.
+Proof.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  intros. eqdep_inv H. cbn.
+  split; intros i; ex_eq i; exists j; auto.
+Qed.
+
 Add Morphism ssub with signature
   (seq ==> seq ==> seq) as ssub_mor.
 Proof.
   intros. unfold ssub.
   rewrite H, H0. reflexivity.
+Qed.
+
+Add Morphism ssub with signature
+  (eqs ==> eqs ==> eqs) as ssub_mor_eqs.
+Proof.
+  intros. apply sadd_mor_eqs; auto using sopp_mor_eqs.
 Qed.
 
 Theorem sadd_num : ∀ x y, num x → num y → num (x + y).

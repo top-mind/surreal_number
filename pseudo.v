@@ -68,8 +68,8 @@ Goal ∃ x, rbound x ∧ ~ lbound x.
   - intros H. specialize (H tt).
     rewrite g0_is_0 in H.
     sinv H.
-    specialize (H tt).
-    apply (sle_not_snge _ _ (sle_refl 0)), H.
+    specialize (H2 tt).
+    apply (sle_not_snge _ _ (sle_refl 0)), H2.
 Qed.
 
 Definition g0' := [∅, singleton zz].
@@ -93,8 +93,8 @@ Goal ∃ x, lbound x ∧ ~ rbound x.
   - intros H. specialize (H tt).
     rewrite g0'_is_0 in H.
     sinv H.
-    specialize (H0 tt).
-    apply (sle_not_snge _ _ (sle_refl 0)), H0.
+    specialize (H9 tt).
+    apply (sle_not_snge _ _ (sle_refl 0)), H9.
 Qed.
 
 Definition oz := [singleton 1, singleton 0].

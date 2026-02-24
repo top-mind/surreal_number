@@ -97,17 +97,19 @@ Proof.
   split; intros i; exists i; auto.
 Qed.
 
+Ltac ex_eq i :=
+  match type of i with
+  | ?T => match goal with
+    | H: ∀_:T, ∃_,_ |- _ => destruct (H i) as [j Hj]
+    end
+  end.
+
 Theorem eqs_sym : ∀ x y : surreal, x ≡s y → y ≡s x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   intros [Ly Ry ly ry] H.
   eqdep_inv H.
-  split; intros i;
-  match type of i with
-  | ?T => match goal with
-    | H : ∀ _ : T, ∃ _,_ |- _ => destruct (H i) as [j Hj]; exists j; auto
-    end
-  end.
+  split; intros i; ex_eq i; exists j; auto.
 Qed.
 
 Theorem eqs_trans : ∀ x y z : surreal,
@@ -117,17 +119,14 @@ Proof.
   destruct y as [Ly Ry ly ry].
   destruct z as [Lz Rz lz rz].
   intros H1 H2. eqdep_inv H1. eqdep_inv H2.
-  split; intros i;
-  match type of i with
+  split; intros i; ex_eq i;
+  match type of j with
   | ?T => match goal with
-    | H : ∀ _ : T, ∃ _,_ |- ∃ _ : ?V, _ => destruct (H i) as [j Hj];
-      match type of j with
-      | ?U => match goal with
-        | H : ∀ _ : U, ∃ _ : V, _ |- _ => destruct (H j) as [k Hk]; exists k; eauto
-        end
-      end
+  | |- ∃_:?U,_ => match goal with
+    | H: ∀_:T, ∃_:U,_ |- _ => destruct (H j) as [k Hk]
     end
-  end.
+  end
+  end; exists k; eauto.
 Qed.
 
 Add Relation surreal eqs
@@ -139,12 +138,8 @@ Theorem eqs_eq : ∀ x y : surreal, x ≡s y → x ≡ y.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   intros [Ly Ry ly ry] H. eqdep_inv H.
-  do 2 split; intros i; solve_snge;
-  match type of i with
-  | ?T => match goal with
-    | H : ∀ _ : T, ∃ _,_ |- _ => destruct (H i) as [j Hj]
-    end
-  end; exists j; try apply IH1; try apply IH2; auto.
+  do 2 split; intros i; solve_snge; ex_eq i;
+  exists j; try apply IH1; try apply IH2; auto.
 Qed.
 
 Add Morphism seq with signature eqs ==> eqs ==> iff as seq_mor.
@@ -155,3 +150,23 @@ Proof.
 Qed.
 
 Hint Resolve eqs_eq : core.
+
+Definition set_eq {A} {B} (f : A → surreal) (g : B → surreal) :=
+  (∀ i, ∃ j, f i ≡ g j) ∧ (∀ j, ∃ i, f i ≡ g j).
+
+Theorem set_eq_union : ∀ A B C D (f : A → surreal) (g : B → surreal) (f' : C → surreal) (g' : D → surreal),
+  set_eq f f' → set_eq g g' → set_eq (f ∪ g) (f' ∪ g').
+Proof.
+  intros. unfold set_eq in *. destruct H, H0.
+  split; intros [i|i];
+  ex_eq i; try exists (inl j); try exists (inr j); auto.
+Qed.
+
+Theorem set_eq_seq : ∀ A B C D (f : A → surreal) (g : B → surreal) (f' : C → surreal) (g' : D → surreal),
+  set_eq f f' →
+  set_eq g g' →
+  [f, g] ≡ [f', g'].
+Proof.
+  intros; unfold set_eq in *; destruct H, H0.
+  do 2 split; intros i; ex_eq i; solve_snge; exists j; apply Hj.
+Qed.
