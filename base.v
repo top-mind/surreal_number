@@ -131,6 +131,12 @@ Fixpoint sopp x :=
 
 Notation "( - x )" := (sopp x) : surreal_scope.
 
+Hint Unfold sopp : core.
+
+Theorem sopp_rewrite : ∀ L R (l : L → surreal) (r : R → surreal),
+  (- [l, r]) = [ λ j, (- r j), λ i, (- l i) ].
+Proof. reflexivity. Qed.
+
 From Stdlib Require Import FunctionalExtensionality.
 
 Example opp_0 : (-0) = 0.

@@ -42,26 +42,6 @@ Qed.
 Corollary smul_comm : ∀ x y, x * y ≡ y * x.
 Proof. intros. apply eqs_eq. apply smul_comm_eqs. Qed.
 
-Ltac remember_mul_terms lx rx ly ry lz rz i j :=
-  try remember (lx i * [ly, ry]);
-  try remember (lx i * [lz, rz]);
-  try remember ([lx, rx] * ly j);
-  try remember ([lx, rx] * [lz, rz]);
-  try remember (lx i * ly j);
-  try remember ([lx, rx] * [ly, ry]);
-  try remember ([lx, rx] * lz j);
-  try remember (lx i * lz j);
-  try remember (rx i * [ly, ry]);
-  try remember (rx i * [lz, rz]);
-  try remember ([lx, rx] * ry j);
-  try remember (rx i * ry j);
-  try remember ([lx, rx] * rz j);
-  try remember (rx i * rz j);
-  try remember (lx i * ry j);
-  try remember (lx i * rz j);
-  try remember (rx i * ly j);
-  try remember (rx i * lz j).
-
 Lemma smul_sadd_distr_aux : ∀ a b c d e,
   a + b + (c + d) - (e + b) ≡ a + c - e + d ∧
   a + b + (c + d) - (a + e) ≡ c + (b + d - e).
@@ -98,9 +78,35 @@ Proof.
     try exists (inl (i, inr j));
     try exists (inr (i, inl j));
     try exists (inr (i, inr j));
-  cbn [union uncurry]; rewrite ?IH1, ?IH2, ?IH3, ?IH4, ?IH5, ?IH6;
-  remember_mul_terms lx rx ly ry lz rz i j; clear.
+  cbn [union uncurry]; rewrite ?IH1, ?IH2, ?IH3, ?IH4, ?IH5, ?IH6.
   all: try apply smul_sadd_distr_aux.
+Qed.
+
+Corollary smul_sadd_distr_r : ∀ x y z, (x + y) * z ≡ x * z + y * z.
+Proof. intros. rewrite smul_comm, smul_sadd_distr_l. apply sadd_mor; apply smul_comm. Qed.
+
+Theorem smul_sopp_distr_l : ∀ x y, (-x) * y ≡ (- x * y).
+Proof.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  induction y as [Ly Ry ly IH3 ry IH4].
+  rewrite sopp_rewrite, !smul_rewrite, sopp_rewrite.
+  apply set_eq_seq; split;
+  intros [(i,j)|(i,j)]; try exists (inl (i,j)); try exists (inr (i,j));
+    cbn [union uncurry]; rewrite <- sopp_rewrite;
+    rewrite ?IH1, ?IH2, ?IH3, ?IH4;
+    unfold ssub; rewrite 2 sopp_sadd; reflexivity.
+Qed.
+
+Corollary smul_sopp_distr_r : ∀ x y, x * (-y) ≡ (-x * y).
+Proof. intros. rewrite smul_comm, smul_sopp_distr_l, smul_comm. reflexivity. Qed.
+
+Lemma smul_assoc_eqs_aux : ∀ a b c d e f g, a + b + c + d + (e + f + g) ≡ a + (b + d + f) + (c + e + g).
+Proof.
+  intros.
+  rewrite !sadd_assoc. do 2 solve_sadd.
+  rewrite sadd_comm, !sadd_assoc. solve_sadd.
+  rewrite sadd_comm, !sadd_assoc. solve_sadd.
+  rewrite sadd_comm, !sadd_assoc. solve_sadd.
 Qed.
 
 Theorem smul_assoc_eqs : ∀ x y z, (x * y) * z ≡ x * (y * z).
@@ -109,17 +115,23 @@ Proof.
   induction y as [Ly Ry ly IH3 ry IH4].
   induction z as [Lz Rz lz IH5 rz IH6].
   rewrite !smul_rewrite.
-  apply set_eq_seq; split.
-  - intros [([(i,j)|(i,j)],k)|([(i,j)|(i,j)],k)].
-    + exists (inl(i,inl(j,k))).
-      cbn [union uncurry].
-      
-
-Admitted.
-
-(*
-(lx xᴸ * [ly, ry] + [lx, rx] * ly yᴸ - lx xᴸ * ly yᴸ) * [lz, rz] + [lx, rx] * [ly, ry] * lz zᴸ -
-(lx xᴸ * [ly, ry] + [lx, rx] * ly yᴸ - lx xᴸ * ly yᴸ) * lz zᴸ
-≡ lx xᴸ * ([ly, ry] * [lz, rz]) + [lx, rx] * (ly yᴸ * [lz, rz] + [ly, ry] * lz zᴸ - ly yᴸ * lz zᴸ) -
-lx xᴸ * (ly yᴸ * [lz, rz] + [ly, ry] * lz zᴸ - ly yᴸ * lz zᴸ)
-*)
+  apply set_eq_seq; split;
+  try intros [([(i,j)|(i,j)],k)|([(i,j)|(i,j)],k)];
+  try intros [(i,[(j,k)|(j,k)])|(i,[(j,k)|(j,k)])];
+  try exists (inl (i, inl (j,k)));
+  try exists (inr (i, inr (j, k)));
+  try exists (inl (i, inr (j, k)));
+  try exists (inr (i, inl (j, k)));
+  try exists (inl (inl (i, j), k));
+  try exists (inr (inl (i, j), k));
+  try exists (inr (inr (i, j), k));
+  try exists (inl (inr (i, j), k));
+      cbn [union uncurry];
+      rewrite <- !smul_rewrite;
+      unfold ssub;
+      rewrite !smul_sadd_distr_l, !smul_sadd_distr_r;
+      rewrite !smul_sopp_distr_l, !smul_sopp_distr_r;
+      rewrite !sopp_sadd;
+      rewrite ?IH1, ?IH2, ?IH3, ?IH4, ?IH5, ?IH6.
+  all: apply smul_assoc_eqs_aux.
+Qed.

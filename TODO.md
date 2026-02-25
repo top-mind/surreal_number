@@ -7,6 +7,3 @@
 - [ ] mul
 - [ ] ONAG
 - [ ] Solve eq_num problem
-# urgent
-- [x] rewrite eqs ≡s
-- [x] use eqdep_inv
