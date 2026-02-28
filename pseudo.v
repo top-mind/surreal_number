@@ -39,7 +39,7 @@ Proof.
   do 2 split; intros []; unfold singleton.
   - rewrite g0_is_0. apply cmp_m1_0_1.
   - solve_snge. exists tt. rewrite g0_is_0. apply sle_refl.
-Qed. 
+Qed.
 
 
 Goal ∃ x, bound x ∧ ~ num x.

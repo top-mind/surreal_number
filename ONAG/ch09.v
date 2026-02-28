@@ -33,7 +33,7 @@ Proof.
   - destruct (classic (∃ i, state (l i) false false)).
     + left. constructor. assumption.
     + right. constructor. intros i.
-      apply not_ex_all_not with (n := i) in H. 
+      apply not_ex_all_not with (n := i) in H.
       destruct (IHl i) as [_ []]; auto; contradiction.
   - destruct (classic (∃ j, state (r j) true false)).
     + left. constructor. assumption.
