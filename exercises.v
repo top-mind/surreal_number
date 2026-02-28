@@ -56,13 +56,13 @@ From SN Require Import equiv.
 From Stdlib Require Import Setoid.
 
 Module Exercise3.
-  (* Merged into equiv.v *)
+  (** Merged into equiv.v *)
 End Exercise3.
 
 From SN Require Import add.
 
 Module Exercise7.
-  (* add.v: sopp_mor *)
+  (** add.v: sopp_mor *)
 End Exercise7.
 
 Module Exercise8.
@@ -74,9 +74,9 @@ Module Exercise9.
 End Exercise9.
 
 Module Exercise10.
-  (* Done in add.v *)
+  (** Done in add.v *)
 End Exercise10.
 
 Module Exercise15.
-  (* Done in paradox.v *)
+  (** Done in paradox.v *)
 End Exercise15.

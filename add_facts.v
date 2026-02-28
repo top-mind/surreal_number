@@ -1,15 +1,6 @@
 From Stdlib Require Import Utf8_core.
 From SN Require Import base equiv add.
 
-(** T17 *)
-Theorem sadd_ssub_id : ∀ x y, x + y - y ≡ x.
-Proof.
-  intros. unfold ssub.
-  rewrite sadd_assoc.
-  rewrite (ssub_diag y).
-  apply sadd_zero.
-Qed.
-
 (** T18 *)
 Theorem sopp_sadd : ∀ x y, (- (x + y)) ≡s (- x) + (- y).
 Proof.
@@ -22,4 +13,11 @@ Proof.
     try exists (inl i);
     try exists (inr i);
     cbn [union]; auto.
+Qed.
+
+Theorem sadd_shift_item : ∀ x y, x - y ≡ 0 → x ≡ y.
+Proof.
+  intros.
+  rewrite <- sadd_ssub_id with (y:=y).
+  rewrite sadd_comm with (x:=x), sadd_assoc, H. auto.
 Qed.

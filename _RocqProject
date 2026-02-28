@@ -1,8 +1,8 @@
 -Q . SN
 ./mul.v
+./mul2.v
 ./pseudo.v
 ./add_facts.v
-./ONAG/ch00.v
 ./ONAG/ch09.v
 ./ONAG/game.v
 ./add.v

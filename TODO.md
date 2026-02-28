@@ -4,6 +4,7 @@
 - [ ] Prove `not_sle_snge` with minimal axioms e.g.
       ¬ x ≤ y ∨ ¬ ¬ x ≤ y
 # main
-- [ ] mul
+- [x] mul
+- [ ] mul2
 - [ ] ONAG
 - [ ] Solve eq_num problem

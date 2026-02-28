@@ -62,7 +62,8 @@ End AddExample1.
 
 (** Chapter 9 *)
 
-Theorem sadd_comm_eqs : ∀ x y : surreal, x + y ≡s y + x.
+(** T9 *)
+Theorem sadd_comm : ∀ x y : surreal, x + y ≡s y + x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   induction y as [Ly Ry ly IH3 ry IH4].
@@ -71,15 +72,8 @@ Proof.
   all: intros [i|i]; [exists (inr i) | exists (inl i)]; cbn [union]; auto.
 Qed.
 
-(** T9 *)
-Corollary sadd_comm : ∀ x y : surreal, x + y ≡ y + x.
-Proof. intros. apply eqs_eq. apply sadd_comm_eqs. Qed.
-
-Corollary sadd_sle_comm : ∀ x y : surreal,
-  x + y ≤ y + x.
-Proof. apply sadd_comm. Qed.
-
-Theorem sadd_zero_eqs : ∀ x : surreal, x + 0 ≡s x.
+(** T10 *)
+Theorem sadd_zero : ∀ x : surreal, x + 0 ≡s x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   rewrite sadd_rewrite.
@@ -89,13 +83,10 @@ Proof.
   cbn [union]; auto.
 Qed.
 
-(** T10 *)
-Corollary sadd_zero : ∀ x : surreal, x + 0 ≡ x.
-Proof. intros. apply eqs_eq. apply sadd_zero_eqs. Qed.
+Hint Resolve sadd_zero : core.
 
-(** Chapter 10 *)
-
-Theorem sadd_assoc_eqs : ∀ x y z : surreal,
+(** T11 *)
+Theorem sadd_assoc : ∀ x y z : surreal,
   (x + y) + z ≡s x + (y + z).
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
@@ -112,11 +103,6 @@ Proof.
   try exists (inl (inr i));
   try exists (inr i); cbn [union]; auto.
 Qed.
-
-(** T11 *)
-Corollary sadd_assoc : ∀ x y z : surreal,
-  (x + y) + z ≡ x + (y + z).
-Proof. intros. apply eqs_eq. apply sadd_assoc_eqs. Qed.
 
 Lemma sadd_mono_aux : forall x y z : surreal,
   (x ≤ y → x + z ≤ y + z) ∧ (x ≱ y → x + z ≱ y + z).
@@ -147,11 +133,10 @@ Proof. apply sadd_mono_aux. Qed.
 
 Lemma sadd_sle_mono : forall x y z w : surreal,
   x ≤ y → z ≤ w → x + z ≤ y + w.
-Proof with auto using sadd_sle_mono_r, sadd_sle_comm.
+Proof with auto using sadd_sle_mono_r.
   intros.
   transitivity (y + z)...
-  transitivity (z + y)...
-  transitivity (w + y)...
+  rewrite (sadd_comm y z), (sadd_comm y w)...
 Qed.
 
 Lemma sadd_snge_mono_r : forall x y z : surreal,
@@ -190,13 +175,11 @@ Proof.
   try exists (inl j); try exists (inr j); cbn [union]; auto.
 Qed.
 
-Definition ssub x y := x + (- y).
-Infix "-" := ssub : surreal_scope.
+Notation "x - y" := (x + (- y)) : surreal_scope.
 
 (** T15 *)
 Theorem ssub_diag : forall x : surreal, x - x ≡ 0.
 Proof.
-  unfold ssub.
   induction x as [Lx Rx lx IH1 rx IH2].
   cbn [sopp].
   rewrite sadd_rewrite.
@@ -224,10 +207,8 @@ Theorem sadd_sle_mono_r_rev : forall x y z : surreal,
   x + z ≤ y + z → x ≤ y.
 Proof.
   intros.
-  rewrite <- (sadd_zero x); rewrite <- (sadd_zero y).
-  rewrite <- (ssub_diag z).
-  unfold ssub.
-  do 2 rewrite <- sadd_assoc.
+  rewrite <- (sadd_zero x), <- (sadd_zero y), <- (ssub_diag z).
+  rewrite <- !sadd_assoc.
   apply sadd_sle_mono_r. auto.
 Qed.
 
@@ -261,6 +242,25 @@ Proof.
   reflexivity.
 Qed.
 
+(** T17 *)
+Theorem sadd_ssub_id : ∀ x y, x + y - y ≡ x.
+Proof.
+  intros.
+  rewrite sadd_assoc.
+  rewrite (ssub_diag y). auto.
+Qed.
+
+Lemma sopp_snge_mono : forall x y : surreal,
+  x ≱ y → (- y) ≱ (- x).
+Proof.
+  intros.
+  rewrite <- (sadd_ssub_id (-y) (x+y)), <- (sadd_ssub_id (-x) (x+y)).
+  rewrite <- !sadd_assoc.
+  apply sadd_snge_mono_r.
+  rewrite sadd_comm, <- sadd_assoc, ssub_diag, sadd_comm, sadd_zero.
+  rewrite (sadd_comm (-x)), ssub_diag, sadd_comm, sadd_zero. auto.
+Qed.
+
 Add Morphism sopp with signature
   (seq ==> seq) as sopp_mor.
 Proof.
@@ -273,19 +273,6 @@ Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   intros. eqdep_inv H. cbn.
   split; intros i; ex_eq i; exists j; auto.
-Qed.
-
-Add Morphism ssub with signature
-  (seq ==> seq ==> seq) as ssub_mor.
-Proof.
-  intros. unfold ssub.
-  rewrite H, H0. reflexivity.
-Qed.
-
-Add Morphism ssub with signature
-  (eqs ==> eqs ==> eqs) as ssub_mor_eqs.
-Proof.
-  intros. apply sadd_mor_eqs; auto using sopp_mor_eqs.
 Qed.
 
 Theorem sadd_num : ∀ x y, num x → num y → num (x + y).
@@ -301,4 +288,12 @@ Proof with
   2: apply trans2 with (y:=[lx, rx] + [ly, ry])...
   all: apply sadd_sle_mono; try reflexivity.
   all: apply num_bound in Hx; destruct Hx; auto.
+Qed.
+
+Theorem sopp_num : ∀ x, num x → num (- x).
+Proof.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  intros Hx.
+  inversion Hx as [? []]. repeat split; auto.
+  intros. apply sopp_snge_mono. auto.
 Qed.

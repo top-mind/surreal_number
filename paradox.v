@@ -20,7 +20,7 @@ Proof.
   auto.
 Qed.
 
-Fail Definition X := [ λ x, x, ess ].
+Fail Definition X := [ λ x, x, ∅ ].
 
 Unset Universe Checking.
 

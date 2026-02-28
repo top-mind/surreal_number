@@ -100,7 +100,7 @@ Qed.
 Ltac ex_eq i :=
   match type of i with
   | ?T => match goal with
-    | H: ∀_:T, ∃_,_ |- _ => destruct (H i) as [j Hj]
+    | H: ∀_:T, ∃_,_ |- _ => destruct (H i) as [?j ?Hj]
     end
   end.
 
@@ -134,6 +134,11 @@ Add Relation surreal eqs
   symmetry proved by eqs_sym
   transitivity proved by eqs_trans as eqs_rel.
 
+Theorem sopp_zero : (-0) ≡s 0.
+Proof.
+  split; intros [].
+Qed.
+
 Theorem eqs_eq : ∀ x y : surreal, x ≡s y → x ≡ y.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
@@ -142,6 +147,8 @@ Proof.
   exists j; try apply IH1; try apply IH2; auto.
 Qed.
 
+Hint Resolve eqs_eq : core.
+
 Add Morphism seq with signature eqs ==> eqs ==> iff as seq_mor.
 Proof.
   split; intros;
@@ -149,7 +156,11 @@ Proof.
    rewrite (eqs_eq x y H), (eqs_eq x0 y0 H0)]; auto.
 Qed.
 
-Hint Resolve eqs_eq : core.
+Add Morphism sle with signature eqs ==> eqs ==> iff as sle_mor_eqs.
+Proof. split; apply sle_mor; auto; symmetry; auto. Qed.
+
+Add Morphism snge with signature eqs ==> eqs ==> iff as snge_mor_eqs.
+Proof. split; apply snge_mor; auto; symmetry; auto. Qed.
 
 Definition set_eq {A} {B} (f : A → surreal) (g : B → surreal) :=
   (∀ i, ∃ j, f i ≡ g j) ∧ (∀ j, ∃ i, f i ≡ g j).
