@@ -134,7 +134,7 @@ Add Relation surreal eqs
   symmetry proved by eqs_sym
   transitivity proved by eqs_trans as eqs_rel.
 
-Theorem sopp_zero : (-0) ≡s 0.
+Theorem sopp_0 : (-0) ≡s 0.
 Proof.
   split; intros [].
 Qed.
@@ -180,4 +180,14 @@ Theorem set_eq_seq : ∀ A B C D (f : A → surreal) (g : B → surreal) (f' : C
 Proof.
   intros; unfold set_eq in *; destruct H, H0.
   do 2 split; intros i; ex_eq i; solve_snge; exists j; apply Hj.
+Qed.
+
+Add Morphism num with signature eqs ==> iff as num_mor.
+Proof.
+  induction x as [Lx Rx lx IH1 rx IH2].
+  intros [Ly Ry ly ry] H. eqdep_inv H.
+  repeat split; inversion H as [? []]; intro i; ex_eq i;
+    try (eapply IH1; eauto; fail);
+    try (eapply IH2; eauto; fail);
+    intros j0; ex_eq j0; [rewrite <-Hj, <-Hj0 | rewrite Hj, Hj0]; auto.
 Qed.

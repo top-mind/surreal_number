@@ -27,14 +27,7 @@ Proof.
   reflexivity.
 Qed.
 
-Ltac introall :=
-  repeat match goal with
-  | |- forall _ : _, _ => intros ?i
-  | h : _ * _ |- _ => destruct h as [?i ?j]
-  | h : _ + _ |- _ => destruct h as [?h | ?h]
-  end.
-
-Theorem smul_zero : ∀ x, x * 0 ≡s 0.
+Theorem smul_0 : ∀ x, x * 0 ≡s 0.
 Proof.
   intros [Lx Rx lx rx]. rewrite smul_rewrite. split;
     try (intros []); introall; destruct j.
@@ -53,7 +46,7 @@ Proof.
   reflexivity.
 Qed.
 
-Hint Resolve smul_zero smul_comm : core.
+Hint Resolve smul_0 smul_comm : core.
 
 Lemma smul_sadd_distr_aux : ∀ a b c d e,
   a + b + (c + d) - (e + b) ≡ a + c - e + d ∧
@@ -68,7 +61,7 @@ Proof.
     rewrite sadd_comm, <-!sadd_assoc, (ssub_diag b), sadd_comm; auto.
   - rewrite <-!sadd_assoc; solve_sadd.
     do 2 solve_sadd_perm_l.
-    rewrite sadd_assoc; rewrite <-(sadd_zero c) at 2. solve_sadd.
+    rewrite sadd_assoc; rewrite <-(sadd_0 c) at 2. solve_sadd.
     rewrite sadd_comm. apply ssub_diag.
 Qed.
 
@@ -120,7 +113,7 @@ Proof.
   try exists (inl (i, tt));
   try exists (inr (i, tt));
   cbn [union uncurry];
-  rewrite ?IH1, ?IH2, !smul_zero, sopp_zero, !sadd_zero;
+  rewrite ?IH1, ?IH2, !smul_0, sopp_0, !sadd_0;
   reflexivity.
 Qed.
 

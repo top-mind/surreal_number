@@ -139,16 +139,16 @@ Proof. reflexivity. Qed.
 
 From Stdlib Require Import FunctionalExtensionality.
 
-Example opp_0 : (-0) = 0.
+Example sopp_0 : (-0) = 0.
 Proof.
   simpl. f_equal; extensionality i; tauto.
 Qed.
 
-Example neg_one : (-1) = [∅, singleton 0].
+Example sopp_1 : (-1) = [∅, singleton 0].
 Proof.
   simpl.
   f_equal. extensionality i; tauto.
-  rewrite <- opp_0. reflexivity.
+  rewrite <- sopp_0. reflexivity.
 Qed.
 
 Proposition num_0_1_m1 : num 0 ∧ num 1 ∧ num (-1).
@@ -160,7 +160,7 @@ Qed.
 Proposition cmp_m1_0_1 :
   (-1) < 0 ∧ 0 < 1 ∧ (-1) < 1.
 Proof with try intros [].
-  rewrite neg_one.
+  rewrite sopp_1.
   repeat split...
   1: right.
   2,3: left.
@@ -288,3 +288,7 @@ Ltac solve_snge := match goal with
       destruct Z as [tacL tacR tacl tacr] eqn:tacE; constructor; right; rewrite <-tacE in *; clear tacL tacR tacl tacr tacE
   | _ => fail 1 "Goal is not of the form x ≱ y with x or y a surreal number constructor"
   end.
+
+Notation "∗" := [singleton 0, singleton 0].
+Notation "↑" := [singleton 0, singleton ∗].
+Notation "↓" := [singleton ∗, singleton 0].

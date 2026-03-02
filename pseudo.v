@@ -2,9 +2,13 @@
 
 From SN Require Import base equiv.
 
-Definition zz := [singleton 0, singleton 0].
+Theorem zz_not_num : ~ num ∗.
+Proof.
+  intros [_ [_ H]].
+  apply (sle_not_snge _ _ (sle_refl 0)), (H tt tt).
+Qed.
 
-Definition g0 := [singleton zz, ∅].
+Definition g0 := [singleton ∗, ∅].
 
 Theorem g0_is_0 : g0 ≡ 0.
 Proof.
@@ -12,12 +16,6 @@ Proof.
   constructor; right.
   exists tt.
   constructor; intros [].
-Qed.
-
-Theorem zz_not_num : ~ num zz.
-Proof.
-  intros [_ [_ H]].
-  apply (sle_not_snge _ _ (sle_refl 0)), (H tt tt).
 Qed.
 
 Theorem g0_not_num : ~ num g0.
@@ -72,7 +70,7 @@ Goal ∃ x, rbound x ∧ ~ lbound x.
     apply (sle_not_snge _ _ (sle_refl 0)), H2.
 Qed.
 
-Definition g0' := [∅, singleton zz].
+Definition g0' := [∅, singleton ∗].
 
 Theorem g0'_is_0 : g0' ≡ 0.
 Proof.
@@ -99,14 +97,14 @@ Qed.
 
 Definition oz := [singleton 1, singleton 0].
 
-Theorem zz_ngeq_oz : zz ≱ oz.
+Theorem zz_ngeq_oz : ∗ ≱ oz.
 Proof.
   constructor. left. exists tt.
   split; intros. apply cmp_m1_0_1.
   destruct j.
 Qed.
 
-Definition zzoz := [singleton zz, singleton oz].
+Definition zzoz := [singleton ∗, singleton oz].
 
 Theorem zzoz_is_0 : zzoz ≡ 0.
 Proof.
@@ -119,15 +117,15 @@ Goal ∃ x, weak_num x ∧ ~ lbound x ∧ ~ rbound x.
   exists zzoz. split.
   - intros i j. apply zz_ngeq_oz.
   - split; intros H; specialize (H tt); rewrite zzoz_is_0 in H; apply (sle_not_snge _ _ (sle_refl 0)).
-    + apply trans2 with zz; auto.
-      destruct (range_aux zz) as [H1 _].
+    + apply trans2 with ∗; auto.
+      destruct (range_aux ∗) as [H1 _].
       apply (H1 tt).
     + apply trans with oz; auto.
       destruct (range_aux oz) as [_ H2].
       apply (H2 tt).
 Qed.
 
-Definition zzzz := [singleton zz, singleton zz].
+Definition zzzz := [singleton ∗, singleton ∗].
 
 Theorem zzzz_is_0 : zzzz ≡ 0.
 Proof.

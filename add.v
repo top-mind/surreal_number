@@ -23,43 +23,6 @@ Lemma sadd_rewrite : ∀ Lx Rx Ly Ry (lx : Lx → surreal) (rx : Rx → surreal)
       (λ j, rx j + [ly, ry]) ∪ λ j, [lx, rx] + ry j ].
 Proof. reflexivity. Qed.
 
-Module AddExample1.
-
-Definition explore_add x y := ∃ L R (l : L → surreal) (r : R → surreal),
-  x + y = [l, r] ∧ [l, r] = 0.
-
-Ltac explore_add := unfold explore_add; do 4 eexists; split.
-
-Definition ess' := ∅ ∪ ∅.
-Definition zero' := [ess', ess'].
-
-Ltac solve_add :=
-  match goal with
-  | |- _ + _ = ?tm => unfold tm
-  end; rewrite sadd_rewrite; f_equal; apply functional_extensionality;
-  intros p; destruct p; match goal with
-  | tm : Empty_set |- _ => destruct tm
-  | tm : unit |- _ => unfold singleton, union
-  end; auto with surreal.
-
-Theorem szpz : 0 + 0 = zero'. solve_add. Qed.
-Hint Resolve szpz : surreal.
-
-Definition one' := [singleton zero' ∪ ∅, ess'].
-Definition one'' := [∅ ∪ singleton zero', ess'].
-
-Theorem sopz : 1 + 0 = one'. solve_add. Qed.
-Hint Resolve sopz : surreal.
-
-Theorem szpo : 0 + 1 = one''. solve_add. Qed.
-Hint Resolve szpo : surreal.
-
-Definition opo := [singleton one'' ∪ singleton one', ess'].
-
-Theorem sopo : 1 + 1 = opo. solve_add. Qed.
-
-End AddExample1.
-
 (** Chapter 9 *)
 
 (** T9 *)
@@ -73,7 +36,7 @@ Proof.
 Qed.
 
 (** T10 *)
-Theorem sadd_zero : ∀ x : surreal, x + 0 ≡s x.
+Theorem sadd_0 : ∀ x : surreal, x + 0 ≡s x.
 Proof.
   induction x as [Lx Rx lx IH1 rx IH2].
   rewrite sadd_rewrite.
@@ -83,7 +46,7 @@ Proof.
   cbn [union]; auto.
 Qed.
 
-Hint Resolve sadd_zero : core.
+Hint Resolve sadd_0 : core.
 
 (** T11 *)
 Theorem sadd_assoc : ∀ x y z : surreal,
@@ -207,7 +170,7 @@ Theorem sadd_sle_mono_r_rev : forall x y z : surreal,
   x + z ≤ y + z → x ≤ y.
 Proof.
   intros.
-  rewrite <- (sadd_zero x), <- (sadd_zero y), <- (ssub_diag z).
+  rewrite <- (sadd_0 x), <- (sadd_0 y), <- (ssub_diag z).
   rewrite <- !sadd_assoc.
   apply sadd_sle_mono_r. auto.
 Qed.
@@ -257,8 +220,8 @@ Proof.
   rewrite <- (sadd_ssub_id (-y) (x+y)), <- (sadd_ssub_id (-x) (x+y)).
   rewrite <- !sadd_assoc.
   apply sadd_snge_mono_r.
-  rewrite sadd_comm, <- sadd_assoc, ssub_diag, sadd_comm, sadd_zero.
-  rewrite (sadd_comm (-x)), ssub_diag, sadd_comm, sadd_zero. auto.
+  rewrite sadd_comm, <- sadd_assoc, ssub_diag, sadd_comm, sadd_0.
+  rewrite (sadd_comm (-x)), ssub_diag, sadd_comm, sadd_0. auto.
 Qed.
 
 Add Morphism sopp with signature

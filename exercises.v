@@ -19,10 +19,9 @@ Module Exercise2.
                                  end,
                          λ j, f (r j) ]
     end.
-
-  (* Eval simpl in f (zero). *) (* f(0) = (g(0),) *)
-  (* Eval simpl in f (one). *) (* f(1) = ((g(0),) g(1),) *)
-  (* Eval simpl in f (neg_one). *) (* f(-1) = (g(-1), (g(0), )) *)
+  (* Eval simpl in f 0. *) (* [g 0, ∅]*)
+  (* Eval simpl in f 1. *) (* [f 0 ∪ g 1, ∅]*)
+  (* Eval simpl in f (-1). *) (* [g (-1), f 0] *)
 
   Lemma aux : ∀ x y, (x ≤ y → f x ≤ f y) ∧ (x ≱ y → f x ≱ f y).
   Proof with eauto; try apply range.

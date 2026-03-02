@@ -21,15 +21,47 @@ Proof with auto using smul_eqs_r.
   rewrite (smul_comm y y0), smul_comm...
 Qed.
 
-Notation "∗" := [singleton 0, singleton 0].
-
-Goal ∗ * ∗ ≡s ∗.
-  rewrite smul_rewrite. split; introall;
-    try exists tt; try exists (inl (tt, tt));
-    cbn [union uncurry]; unfold singleton;
-    rewrite smul_comm, !smul_zero, sopp_zero, !sadd_zero;
-    reflexivity.
+Example t_ast : 2 * ∗ ≡s [⟨∗⟩, ⟨∗⟩].
+Proof.
+  rewrite smul_rewrite. split; introall; try exists tt.
+  2, 4: exists (inl (tt, tt)).
+  all: cbn [union uncurry]; rewrite ?smul_0, ?sopp_0, ?sadd_0, smul_comm;
+    apply smul_1.
 Qed.
+
+Example two_ast : two * ∗ ≡s [⟨0, ∗⟩, ⟨0, ∗⟩].
+Proof with cbn [union uncurry]; rewrite !smul_0, sopp_0, !sadd_0, smul_comm; auto using smul_1.
+  rewrite smul_rewrite. split; introall.
+  1, 5: exists (inl tt)...
+  1, 4: exists (inr tt)...
+  1, 3: exists (inl (inl tt, tt))...
+  1, 2: exists (inl (inr tt, tt))...
+Qed.
+
+From SN Require Import pseudo.
+
+Lemma t_ast_two_ast : [⟨∗⟩, ⟨∗⟩] ≱ [⟨0, ∗⟩, ⟨0, ∗⟩].
+Proof.
+  rewrite zzzz_is_0.
+  replace 0 with (⟨0, ∗⟩ (inl tt)) at 1 by auto.
+  apply range_l with (lx:=⟨0, ∗⟩) (rx:=⟨0, ∗⟩).
+Qed.
+
+Example n0_p_neq0 : ∃ n p, num n ∧ n ≡ 0 ∧ ~ n * p ≡ 0.
+Proof.
+  exists (two - 2), ∗.
+  split.
+  - apply sadd_num; try apply num_two; apply num_m2.
+  - split. rewrite two_is_2. apply ssub_diag.
+    intro H.
+    rewrite smul_sadd_distr_r, two_ast, smul_sopp_distr_l, t_ast in H.
+    apply sadd_shift_item in H.
+    destruct H. apply sle_not_snge in H.
+    auto using t_ast_two_ast.
+Qed.
+
+Example n_p0_neq0 : ∃ p n, num n ∧ p ≡ 0 ∧ ~ n * p ≡ 0.
+Admitted.
 
 (** THEOREM 8
   If [x] and [y] are numbers,
